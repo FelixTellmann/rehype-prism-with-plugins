@@ -72,7 +72,10 @@ module.exports = (options = {}) => {
           .parse(html_);
 
         // Add markers
-        result = addMarkers(hast_.children, { markers });
+        result = addMarkers(hast_.children, {
+          markers,
+          showLineNumbers: options.showLineNumbers
+        });
       }
     } catch (err) {
       if (options.ignoreMissing && /Unknown language/.test(err.message)) {

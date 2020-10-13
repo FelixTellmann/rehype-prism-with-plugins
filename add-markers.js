@@ -83,6 +83,18 @@ const wrapLines = function wrapLines(ast, markers, options) {
 };
 
 module.exports = function(ast, options) {
+  const numbered = lineNumberify(ast).nodes;
+  const lineLength = numbered[numbered.length - 1].lineNumber;
+  let lineNumbers = [];
+  for (let i = 1; i <= lineLength; i++) {
+    lineNumbers.push({ line: i });
+  }
+
+  options.markers.forEach(marker => {
+    lineNumbers[(marker.line ? marker.line : marker) - 1]['highlight'] = true;
+  });
+  console.log(lineNumbers);
+
   const markers = options.markers
     .map(marker => {
       return marker.line ? marker : { line: marker };
@@ -90,8 +102,8 @@ module.exports = function(ast, options) {
     .sort((nodeA, nodeB) => {
       return nodeA.line - nodeB.line;
     });
-
-  const numbered = lineNumberify(ast).nodes;
+  console.log(markers);
+  console.log(numbered.length, numbered[numbered.length - 1]);
   const wrapped = wrapLines(numbered, markers, options);
   return wrapped;
 };
