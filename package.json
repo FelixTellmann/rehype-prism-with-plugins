@@ -1,7 +1,7 @@
 {
   "name": "mdx-prism",
-  "version": "0.3.1+fork.0.1.0",
-  "description": "A fork of the rehype-prism plugin to highlight code blocks in HTML with Prism and more",
+  "version": "0.1.0",
+  "description": "A fork of the rehype-prism & mdx-prism plugins to highlight code blocks in HTML with Prism and more",
   "main": "index.js",
   "scripts": {
     "precommit": "lint-staged",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mapbox/rehype-prism.git"
+    "url": "git+https://github.com/FelixTellmann/rehype-prism-with-plugins.git"
   },
   "keywords": [
     "rehype",
@@ -26,9 +26,9 @@
   "author": "Juan Olvera <juan@jolvera.dev> (https://jolvera.dev)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/j0lv3r4/mdx-prism/issues"
+    "url": "https://github.com/FelixTellmann/rehype-prism-with-plugins/issues"
   },
-  "homepage": "https://github.com/j0lv3r4/mdx-prism#readme",
+  "homepage": "https://github.com/FelixTellmann/rehype-prism-with-plugins#readme",
   "dependencies": {
     "hast-util-to-string": "^1.0.0",
     "parse-numeric-range": "^0.0.2",
