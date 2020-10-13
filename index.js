@@ -23,6 +23,7 @@ const addMarkers = require('./add-markers');
  */
 
 module.exports = (options = {}) => {
+  console.log(options);
   return tree => {
     visit(tree, 'element', visitor);
   };
@@ -48,7 +49,7 @@ module.exports = (options = {}) => {
 
       result = refractor.highlight(nodeToString(node), lang);
 
-      if (markers && markers.length > 0) {
+      if ((markers && markers.length > 0) || options.showLineNumbers) {
         // This blocks attempts this fix:
         // https://github.com/gatsbyjs/gatsby/blob/master/packages/gatsby-remark-prismjs/src/directives.js#L113-L119
         const PLAIN_TEXT_WITH_LF_TEST = /<span class="token plain-text">[^<]*\n[^<]*<\/span>/g;

@@ -44,6 +44,13 @@ const lineNumberify = function lineNumberify(ast, lineNum = 1) {
 
 const wrapLines = function wrapLines(ast, markers, options) {
   let i = 0;
+  let lineNumber = ln => ({
+    type: 'element',
+    tagName: 'span',
+    properties: { className: 'line-number' },
+    children: ln,
+    lineNumber: ln
+  });
   const wrapped = markers.reduce((nodes, marker) => {
     const { line, highlight } = marker;
     const children = [];
@@ -72,7 +79,18 @@ const wrapLines = function wrapLines(ast, markers, options) {
             className:
               marker.className || `line ${highlight ? 'line-highlight' : ''}`
           },
-      children: children,
+      children: [
+        {
+          type: 'element',
+          tagName: 'span',
+          properties: { className: 'line-number' },
+          children: [
+            { type: 'text', value: `${line.toString()}`, lineNumber: line }
+          ],
+          lineNumber: line
+        },
+        ...children
+      ],
       lineNumber: line
     });
 
@@ -94,20 +112,25 @@ module.exports = function(ast, options) {
     lineNumbers.push({ line: i });
   }
 
-  options.markers.forEach(marker => {
-    lineNumbers[(marker.line ? marker.line : marker) - 1]['highlight'] = true;
-  });
-  console.log(lineNumbers);
+  options.markers &&
+    options.markers.forEach(marker => {
+      lineNumbers[(marker.line ? marker.line : marker) - 1]['highlight'] = true;
+    });
 
   const markers = options.markers
-    .map(marker => {
-      return marker.line ? marker : { line: marker };
-    })
-    .sort((nodeA, nodeB) => {
-      return nodeA.line - nodeB.line;
-    });
-  console.log(markers);
-  console.log(numbered.length, numbered[numbered.length - 1]);
-  const wrapped = wrapLines(numbered, markers, options);
+    ? options.markers
+        .map(marker => {
+          return marker.line ? marker : { line: marker };
+        })
+        .sort((nodeA, nodeB) => {
+          return nodeA.line - nodeB.line;
+        })
+    : {};
+
+  const wrapped = wrapLines(
+    numbered,
+    options.showLineNumbers ? lineNumbers : markers,
+    options
+  );
   return wrapped;
 };
