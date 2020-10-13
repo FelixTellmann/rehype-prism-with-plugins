@@ -44,13 +44,7 @@ const lineNumberify = function lineNumberify(ast, lineNum = 1) {
 
 const wrapLines = function wrapLines(ast, markers, options) {
   let i = 0;
-  let lineNumber = ln => ({
-    type: 'element',
-    tagName: 'span',
-    properties: { className: 'line-number' },
-    children: ln,
-    lineNumber: ln
-  });
+
   const wrapped = markers.reduce((nodes, marker) => {
     const { line, highlight } = marker;
     const children = [];
@@ -127,10 +121,9 @@ module.exports = function(ast, options) {
         })
     : {};
 
-  const wrapped = wrapLines(
+  return wrapLines(
     numbered,
     options.showLineNumbers ? lineNumbers : markers,
     options
   );
-  return wrapped;
 };

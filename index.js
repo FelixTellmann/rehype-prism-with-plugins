@@ -23,7 +23,6 @@ const addMarkers = require('./add-markers');
  */
 
 module.exports = (options = {}) => {
-  console.log(options);
   return tree => {
     visit(tree, 'element', visitor);
   };
