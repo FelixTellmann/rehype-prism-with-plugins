@@ -1,5 +1,6 @@
 /**
- * Code <s>copied</s> inspired from from: https://github.com/rexxars/react-refractor/blob/master/src/addMarkers.js
+ * Code <s>copied</s> inspired from from:
+ * https://github.com/rexxars/react-refractor/blob/master/src/addMarkers.js
  */
 const lineNumberify = function lineNumberify(ast, lineNum = 1) {
   let lineNumber = lineNum;
@@ -44,7 +45,7 @@ const lineNumberify = function lineNumberify(ast, lineNum = 1) {
 const wrapLines = function wrapLines(ast, markers, options) {
   let i = 0;
   const wrapped = markers.reduce((nodes, marker) => {
-    const line = marker.line;
+    const { line, highlight } = marker;
     const children = [];
     for (; i < ast.length; i++) {
       if (ast[i].lineNumber < line) {
@@ -67,7 +68,10 @@ const wrapLines = function wrapLines(ast, markers, options) {
       tagName: marker.component || 'div',
       properties: marker.component
         ? options
-        : { className: marker.className || 'mdx-marker' },
+        : {
+            className:
+              marker.className || `line ${highlight ? 'line-highlight' : ''}`
+          },
       children: children,
       lineNumber: line
     });
