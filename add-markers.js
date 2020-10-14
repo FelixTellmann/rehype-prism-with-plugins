@@ -198,7 +198,14 @@ const wrapLines = function wrapLines(ast, markers, options) {
 
 module.exports = function(ast, options) {
   const numbered = lineNumberify(ast).nodes;
-
+  if (numbered[numbered.length - 1]) {
+    if (
+      numbered[numbered.length - 1].value === '' &&
+      numbered[numbered.length - 1].type === 'text'
+    ) {
+      numbered.length = numbered.length - 1;
+    }
+  }
   const lineLength = numbered[numbered.length - 1].lineNumber;
   let lineNumbers = [];
   for (let i = 1; i <= lineLength; i++) {
