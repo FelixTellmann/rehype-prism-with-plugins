@@ -71,6 +71,7 @@ module.exports = (options = {}) => {
           .use(parse, { emitParseErrors: true, fragment: true })
           .parse(html_);
 
+        // console.log(hast_.children && hast_.children[5] && hast_.children[5].children && hast_.children[5].children[1] && hast_.children[5].children[1].children && hast_.children[5].children[1].children[0]  )
         // Add markers
         result = addMarkers(hast_.children, {
           markers,
