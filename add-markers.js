@@ -84,7 +84,8 @@ const wrapLines = function wrapLines(ast, markers, options) {
     subTree = [],
     length = 0,
     rootIndex = 0,
-    currentAst = []
+    currentAst = [],
+    prevLength = 0
   ) {
     if (!ast[astIndex]) {
       if (subTree.length > 0) {
@@ -92,14 +93,23 @@ const wrapLines = function wrapLines(ast, markers, options) {
       }
       return tree;
     }
+
     const { children, position, lineNumber } = ast[astIndex];
     const { line } = markers[ln];
 
     if (position && position.start.line === position.end.line) {
       if (lineNumber === line) {
         subTree.push(ast[astIndex]);
-        if (astIndex === length - 1) {
-          return findLines(currentAst, ++rootIndex, markers, ln, tree, subTree);
+        if (astIndex >= length - 1) {
+          return findLines(
+            currentAst,
+            ++rootIndex,
+            markers,
+            ln,
+            tree,
+            subTree,
+            prevLength
+          );
         }
         return findLines(
           ast,
@@ -110,7 +120,8 @@ const wrapLines = function wrapLines(ast, markers, options) {
           subTree,
           length,
           rootIndex,
-          currentAst
+          currentAst,
+          prevLength
         );
       }
       if (lineNumber > line) {
@@ -123,7 +134,8 @@ const wrapLines = function wrapLines(ast, markers, options) {
           [],
           length,
           rootIndex,
-          currentAst
+          currentAst,
+          prevLength
         );
       }
     }
@@ -139,7 +151,8 @@ const wrapLines = function wrapLines(ast, markers, options) {
           subTree,
           children.length,
           astIndex,
-          ast
+          ast,
+          length
         );
       }
     }
@@ -148,7 +161,7 @@ const wrapLines = function wrapLines(ast, markers, options) {
       if (lineNumber === line) {
         subTree.push(ast[astIndex]);
 
-        if (astIndex === length - 1) {
+        if (astIndex >= length - 1) {
           return findLines(
             currentAst,
             ++rootIndex,
@@ -156,7 +169,7 @@ const wrapLines = function wrapLines(ast, markers, options) {
             ln,
             tree,
             subTree,
-            length
+            prevLength
           );
         }
         return findLines(
@@ -168,7 +181,8 @@ const wrapLines = function wrapLines(ast, markers, options) {
           subTree,
           length,
           rootIndex,
-          currentAst
+          currentAst,
+          prevLength
         );
       }
       if (lineNumber > line) {
@@ -185,15 +199,16 @@ const wrapLines = function wrapLines(ast, markers, options) {
           [],
           length,
           rootIndex,
-          currentAst
+          currentAst,
+          prevLength
         );
       }
     }
-
     return tree;
   }
 
-  return findLines(ast, 0, markers, 0, [], [], ast.length);
+  const tree = findLines(ast, 0, markers, 0, [], [], ast.length);
+  return tree;
 };
 
 module.exports = function(ast, options) {
@@ -220,6 +235,5 @@ module.exports = function(ast, options) {
         ] = true;
       }
     });
-
   return wrapLines(numbered, lineNumbers, options);
 };
