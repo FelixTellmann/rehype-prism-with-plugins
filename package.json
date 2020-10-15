@@ -23,7 +23,7 @@
     "prism",
     "html"
   ],
-  "author": "Juan Olvera <juan@jolvera.dev> (https://jolvera.dev)",
+  "author": "Felix Tellmann",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/FelixTellmann/rehype-prism-with-plugins/issues"
