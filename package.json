@@ -1,6 +1,6 @@
 {
   "name": "rehype-prism-enhanced",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "A fork of the rehype-prism & mdx-prism plugins to highlight code blocks in HTML with Prism and more",
   "main": "index.js",
   "scripts": {
