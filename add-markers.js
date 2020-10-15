@@ -2,6 +2,10 @@
  * Code <s>copied</s> inspired from from:
  * https://github.com/rexxars/react-refractor/blob/master/src/addMarkers.js
  */
+/**
+ * Code <s>copied</s> inspired from from:
+ * https://github.com/rexxars/react-refractor/blob/master/src/addMarkers.js
+ */
 const lineNumberify = function lineNumberify(ast, lineNum = 1) {
   let lineNumber = lineNum;
   return ast.reduce(
@@ -84,7 +88,6 @@ const makeLine = (markers, line, children, options, classNames = []) => {
 const wrapLines = function wrapLines(ast, markers, lineCount, options) {
   function createTree(ast, markers, lineCount, options) {
     let tree = {};
-
     function addLineNumbers(ast, a, b) {
       ast.forEach((astItem, index) => {
         if (!astItem.used) {
@@ -132,7 +135,6 @@ const wrapLines = function wrapLines(ast, markers, lineCount, options) {
         }
       });
     }
-
     addLineNumbers(ast, 1, lineCount);
 
     return Object.entries(tree)
