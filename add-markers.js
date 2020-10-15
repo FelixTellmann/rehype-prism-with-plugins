@@ -45,12 +45,19 @@ const lineNumberify = function lineNumberify(ast, lineNum = 1) {
   );
 };
 
-const makeLine = (markers, line, children, options) => {
+const makeLine = (markers, line, children, options, classNames = []) => {
+  if (typeof classNames === 'string') {
+    classNames = [classNames];
+  }
   return {
     type: 'element',
     tagName: 'div',
     properties: {
-      className: `line ${markers[line].highlight ? 'line-highlight' : ''}`
+      className: [
+        `line`,
+        markers[line].highlight ? 'line-highlight' : '',
+        ...classNames
+      ]
     },
     children: [
       {
@@ -99,6 +106,23 @@ const wrapLines = function wrapLines(ast, markers, lineCount, options) {
               astItem.position &&
               astItem.position.start.line !== astItem.position.end.line
             ) {
+              if (!ast[index].classUsed) {
+                for (
+                  let j = astItem.position.start.line;
+                  j <= astItem.position.end.line;
+                  j++
+                ) {
+                  tree[`class-${j}`] = tree[`class-${j}`]
+                    ? [
+                        ...new Set([
+                          ...tree[`class-${j}`],
+                          ...astItem.properties.className
+                        ])
+                      ]
+                    : [...astItem.properties.className];
+                }
+              }
+              ast[index]['classUsed'] = true;
               addLineNumbers(astItem.children, lineCount);
             }
           }
@@ -108,9 +132,50 @@ const wrapLines = function wrapLines(ast, markers, lineCount, options) {
     addLineNumbers(ast, lineCount);
 
     return Object.entries(tree)
-      .map(([key, values]) =>
-        makeLine(markers, +key.replace('line-', '') - 1, values, options)
-      )
+      .reduce((acc, [key, values]) => {
+        if (key.includes('class')) {
+          if (acc[+key.replace('class-', '') - 1]) {
+            acc[+key.replace('class-', '') - 1].properties.className
+              ? typeof acc[+key.replace('class-', '') - 1].properties
+                  .className === 'string'
+                ? (acc[+key.replace('class-', '') - 1].properties.className = [
+                    acc[+key.replace('class-', '') - 1].properties.className,
+                    ...values
+                  ])
+                : (acc[+key.replace('class-', '') - 1].properties.className = [
+                    ...acc[+key.replace('class-', '') - 1].properties.className,
+                    ...values
+                  ])
+              : (acc[
+                  +key.replace('class-', '') - 1
+                ].properties.className = values);
+          } else {
+            acc[+key.replace('class-', '') - 1] = values;
+          }
+          return acc;
+        } else {
+          if (
+            acc[+key.replace('line-', '') - 1] &&
+            Array.isArray(acc[+key.replace('line-', '') - 1])
+          ) {
+            acc[+key.replace('line-', '') - 1] = makeLine(
+              markers,
+              +key.replace('line-', '') - 1,
+              values,
+              options,
+              acc[+key.replace('line-', '') - 1]
+            );
+          } else {
+            acc[+key.replace('line-', '') - 1] = makeLine(
+              markers,
+              +key.replace('line-', '') - 1,
+              values,
+              options
+            );
+          }
+          return acc;
+        }
+      }, [])
       .sort((a, b) => a.lineNumber - b.lineNumber);
   }
 
@@ -118,7 +183,7 @@ const wrapLines = function wrapLines(ast, markers, lineCount, options) {
 };
 
 module.exports = function(ast, options) {
-  const { nodes } = lineNumberify(ast);
+  let { nodes, lineNumber } = lineNumberify(ast);
 
   if (nodes[nodes.length - 1]) {
     if (
@@ -128,7 +193,7 @@ module.exports = function(ast, options) {
       nodes.length = nodes.length - 1;
     }
   }
-  const lineNumber = nodes[nodes.length - 1].lineNumber;
+  lineNumber = nodes[nodes.length - 1].lineNumber;
 
   let lineNumbers = [];
   for (let i = 1; i <= lineNumber; i++) {
