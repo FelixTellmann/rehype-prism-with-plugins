@@ -53,6 +53,10 @@ const makeLine = (markers, line, children, options, classNames = []) => {
   if (typeof classNames === 'string') {
     classNames = [classNames];
   }
+  let whitespace;
+  if (children[0].type === 'text' && /^\s+$/.test(children[0].value)) {
+    whitespace = children.splice(0, 1)[0];
+  }
   return {
     type: 'element',
     tagName: 'div',
@@ -79,7 +83,20 @@ const makeLine = (markers, line, children, options, classNames = []) => {
         ],
         lineNumber: markers[line].line
       },
-      ...children
+      {
+        type: 'element',
+        tagName: 'span',
+        properties: { className: 'white-space' },
+        children: [whitespace ? whitespace : { type: 'text', value: '' }],
+        lineNumber: markers[line].line
+      },
+      {
+        type: 'element',
+        tagName: 'span',
+        properties: { className: 'line-content' },
+        children: [...children],
+        lineNumber: markers[line].line
+      }
     ],
     lineNumber: markers[line].line
   };
