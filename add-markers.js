@@ -53,10 +53,30 @@ const makeLine = (markers, line, children, options, classNames = []) => {
   if (typeof classNames === 'string') {
     classNames = [classNames];
   }
-  let whitespace;
-  if (children[0].type === 'text' && /^\s+$/.test(children[0].value)) {
-    whitespace = children.splice(0, 1)[0];
+
+  function extractWhitespace(children) {
+    if (children[0].type === 'text' && /^\s+$/.test(children[0].value)) {
+      return children.splice(0, 1)[0];
+    } else if (children[0].type === 'text' && /^\s+/.test(children[0].value)) {
+      const returnObject = {
+        type: 'text',
+        value: /^\s+/.exec(children[0].value)[0]
+      };
+      children[0].value = children[0].value.replace(/^\s+/, '');
+      return returnObject;
+    } else if (
+      children[0] &&
+      children[0].children &&
+      children[0].children.length > 0
+    ) {
+      return extractWhitespace(children[0].children);
+    } else {
+      return false;
+    }
   }
+
+  let whitespace = extractWhitespace(children);
+
   return {
     type: 'element',
     tagName: 'div',
@@ -90,13 +110,15 @@ const makeLine = (markers, line, children, options, classNames = []) => {
         children: [whitespace ? whitespace : { type: 'text', value: '' }],
         lineNumber: markers[line].line
       },
-      {
-        type: 'element',
-        tagName: 'span',
-        properties: { className: 'line-content' },
-        children: [...children],
-        lineNumber: markers[line].line
-      }
+      children.length > 0
+        ? {
+            type: 'element',
+            tagName: 'span',
+            properties: { className: 'line-content' },
+            children: [...children],
+            lineNumber: markers[line].line
+          }
+        : {}
     ],
     lineNumber: markers[line].line
   };
@@ -105,6 +127,7 @@ const makeLine = (markers, line, children, options, classNames = []) => {
 const wrapLines = function wrapLines(ast, markers, lineCount, options) {
   function createTree(ast, markers, lineCount, options) {
     let tree = {};
+
     function addLineNumbers(ast, a, b) {
       ast.forEach((astItem, index) => {
         if (!astItem.used) {
@@ -115,11 +138,14 @@ const wrapLines = function wrapLines(ast, markers, lineCount, options) {
                 astItem.position.start.line === astItem.position.end.line) ||
                 (!astItem.position && astItem.type === 'text'))
             ) {
-              tree[`line-${astItem.lineNumber}`] = tree[
-                `line-${astItem.lineNumber}`
-              ]
-                ? [...tree[`line-${astItem.lineNumber}`], astItem]
-                : [astItem];
+              if (astItem.type === 'text' && astItem.value === '') {
+              } else {
+                tree[`line-${astItem.lineNumber}`] = tree[
+                  `line-${astItem.lineNumber}`
+                ]
+                  ? [...tree[`line-${astItem.lineNumber}`], astItem]
+                  : [astItem];
+              }
               ast[index]['used'] = true;
             }
             if (
@@ -152,6 +178,7 @@ const wrapLines = function wrapLines(ast, markers, lineCount, options) {
         }
       });
     }
+
     addLineNumbers(ast, 1, lineCount);
 
     return Object.entries(tree)
@@ -201,8 +228,8 @@ const wrapLines = function wrapLines(ast, markers, lineCount, options) {
       }, [])
       .sort((a, b) => a.lineNumber - b.lineNumber);
   }
-
-  return createTree(ast, markers, lineCount, options);
+  const test = createTree(ast, markers, lineCount, options);
+  return test;
 };
 
 module.exports = function(ast, options) {
