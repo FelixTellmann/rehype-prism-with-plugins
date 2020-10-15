@@ -84,10 +84,11 @@ const makeLine = (markers, line, children, options, classNames = []) => {
 const wrapLines = function wrapLines(ast, markers, lineCount, options) {
   function createTree(ast, markers, lineCount, options) {
     let tree = {};
-    function addLineNumbers(ast, lineCount) {
+
+    function addLineNumbers(ast, a, b) {
       ast.forEach((astItem, index) => {
-        for (let i = 1; i <= lineCount; i++) {
-          if (!astItem.used) {
+        if (!astItem.used) {
+          for (let i = a; i <= b; i++) {
             if (
               astItem.lineNumber === i &&
               ((astItem.position &&
@@ -106,30 +107,33 @@ const wrapLines = function wrapLines(ast, markers, lineCount, options) {
               astItem.position &&
               astItem.position.start.line !== astItem.position.end.line
             ) {
-              if (!ast[index].classUsed) {
-                for (
-                  let j = astItem.position.start.line;
-                  j <= astItem.position.end.line;
-                  j++
-                ) {
-                  tree[`class-${j}`] = tree[`class-${j}`]
-                    ? [
-                        ...new Set([
-                          ...tree[`class-${j}`],
-                          ...astItem.properties.className
-                        ])
-                      ]
-                    : [...astItem.properties.className];
-                }
+              for (
+                let j = astItem.position.start.line;
+                j <= astItem.position.end.line;
+                j++
+              ) {
+                tree[`class-${j}`] = tree[`class-${j}`]
+                  ? [
+                      ...new Set([
+                        ...tree[`class-${j}`],
+                        ...astItem.properties.className
+                      ])
+                    ]
+                  : [...astItem.properties.className];
               }
-              ast[index]['classUsed'] = true;
-              addLineNumbers(astItem.children, lineCount);
+              ast[index]['used'] = true;
+              addLineNumbers(
+                astItem.children,
+                astItem.position.start.line,
+                astItem.position.end.line
+              );
             }
           }
         }
       });
     }
-    addLineNumbers(ast, lineCount);
+
+    addLineNumbers(ast, 1, lineCount);
 
     return Object.entries(tree)
       .reduce((acc, [key, values]) => {
