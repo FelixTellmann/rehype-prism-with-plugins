@@ -118,7 +118,7 @@ const wrapLines = function wrapLines(ast, markers, lineCount, options) {
 };
 
 module.exports = function(ast, options) {
-  let { nodes, lineNumber } = lineNumberify(ast);
+  const { nodes } = lineNumberify(ast);
 
   if (nodes[nodes.length - 1]) {
     if (
@@ -128,7 +128,7 @@ module.exports = function(ast, options) {
       nodes.length = nodes.length - 1;
     }
   }
-  lineNumber = nodes[nodes.length - 1].lineNumber;
+  const lineNumber = nodes[nodes.length - 1].lineNumber;
 
   let lineNumbers = [];
   for (let i = 1; i <= lineNumber; i++) {
