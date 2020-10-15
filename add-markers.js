@@ -74,156 +74,64 @@ const makeLine = (markers, line, children, options) => {
   };
 };
 
-const wrapLines = function wrapLines(ast, markers, options) {
-  function findLines(
-    ast,
-    astIndex,
-    markers,
-    ln,
-    tree = [],
-    subTree = [],
-    length = 0,
-    rootIndex = 0,
-    currentAst = [],
-    prevLength = 0
-  ) {
-    if (!ast[astIndex]) {
-      if (subTree.length > 0) {
-        tree.push(makeLine(markers, ln, subTree, options));
-      }
-      return tree;
-    }
-
-    const { children, position, lineNumber } = ast[astIndex];
-    const { line } = markers[ln];
-
-    if (position && position.start.line === position.end.line) {
-      if (lineNumber === line) {
-        subTree.push(ast[astIndex]);
-        if (astIndex >= length - 1) {
-          return findLines(
-            currentAst,
-            ++rootIndex,
-            markers,
-            ln,
-            tree,
-            subTree,
-            prevLength
-          );
+const wrapLines = function wrapLines(ast, markers, lineCount, options) {
+  function createTree(ast, markers, lineCount, options) {
+    let tree = {};
+    function addLineNumbers(ast, lineCount) {
+      ast.forEach((astItem, index) => {
+        for (let i = 1; i <= lineCount; i++) {
+          if (!astItem.used) {
+            if (
+              astItem.lineNumber === i &&
+              ((astItem.position &&
+                astItem.position.start.line === astItem.position.end.line) ||
+                (!astItem.position && astItem.type === 'text'))
+            ) {
+              tree[`line-${astItem.lineNumber}`] = tree[
+                `line-${astItem.lineNumber}`
+              ]
+                ? [...tree[`line-${astItem.lineNumber}`], astItem]
+                : [astItem];
+              ast[index]['used'] = true;
+            }
+            if (
+              astItem.lineNumber === i &&
+              astItem.position &&
+              astItem.position.start.line !== astItem.position.end.line
+            ) {
+              addLineNumbers(astItem.children, lineCount);
+            }
+          }
         }
-        return findLines(
-          ast,
-          ++astIndex,
-          markers,
-          ln,
-          tree,
-          subTree,
-          length,
-          rootIndex,
-          currentAst,
-          prevLength
-        );
-      }
-      if (lineNumber > line) {
-        return findLines(
-          ast,
-          astIndex,
-          markers,
-          ++ln,
-          tree,
-          [],
-          length,
-          rootIndex,
-          currentAst,
-          prevLength
-        );
-      }
+      });
     }
+    addLineNumbers(ast, lineCount);
 
-    if (position && position.start.line !== position.end.line) {
-      if (lineNumber === line) {
-        findLines(
-          children,
-          0,
-          markers,
-          ln,
-          tree,
-          subTree,
-          children.length,
-          astIndex,
-          ast,
-          length
-        );
-      }
-    }
-
-    if (!position) {
-      if (lineNumber === line) {
-        subTree.push(ast[astIndex]);
-
-        if (astIndex >= length - 1) {
-          return findLines(
-            currentAst,
-            ++rootIndex,
-            markers,
-            ln,
-            tree,
-            subTree,
-            prevLength
-          );
-        }
-        return findLines(
-          ast,
-          ++astIndex,
-          markers,
-          ln,
-          tree,
-          subTree,
-          length,
-          rootIndex,
-          currentAst,
-          prevLength
-        );
-      }
-      if (lineNumber > line) {
-        if (subTree.length > 0) {
-          tree.push(makeLine(markers, ln, subTree, options));
-        }
-
-        return findLines(
-          ast,
-          astIndex,
-          markers,
-          ++ln,
-          tree,
-          [],
-          length,
-          rootIndex,
-          currentAst,
-          prevLength
-        );
-      }
-    }
-    return tree;
+    return Object.entries(tree)
+      .map(([key, values]) =>
+        makeLine(markers, +key.replace('line-', '') - 1, values, options)
+      )
+      .sort((a, b) => a.lineNumber - b.lineNumber);
   }
 
-  const tree = findLines(ast, 0, markers, 0, [], [], ast.length);
-  return tree;
+  return createTree(ast, markers, lineCount, options);
 };
 
 module.exports = function(ast, options) {
-  const numbered = lineNumberify(ast).nodes;
-  if (numbered[numbered.length - 1]) {
+  let { nodes, lineNumber } = lineNumberify(ast);
+
+  if (nodes[nodes.length - 1]) {
     if (
-      numbered[numbered.length - 1].value === '' &&
-      numbered[numbered.length - 1].type === 'text'
+      nodes[nodes.length - 1].value === '' &&
+      nodes[nodes.length - 1].type === 'text'
     ) {
-      numbered.length = numbered.length - 1;
+      nodes.length = nodes.length - 1;
     }
   }
-  const lineLength = numbered[numbered.length - 1].lineNumber;
+  lineNumber = nodes[nodes.length - 1].lineNumber;
+
   let lineNumbers = [];
-  for (let i = 1; i <= lineLength; i++) {
+  for (let i = 1; i <= lineNumber; i++) {
     lineNumbers.push({ line: i });
   }
 
@@ -235,5 +143,6 @@ module.exports = function(ast, options) {
         ] = true;
       }
     });
-  return wrapLines(numbered, lineNumbers, options);
+
+  return wrapLines(nodes, lineNumbers, lineNumber, options);
 };
