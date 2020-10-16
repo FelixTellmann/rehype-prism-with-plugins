@@ -144,11 +144,11 @@ const wrapLines = function wrapLines(ast, markers, lineCount, options) {
   addLineNumbers(ast, 1, lineCount);
 
   let finalTree = [];
-  for (let i = 0; i < lineCount; i++) {
+  for (let i = 1; i < lineCount; i++) {
     finalTree.push(
       makeLine(
         markers,
-        i,
+        i - 1,
         tree[`line-${i}`] ? tree[`line-${i}`] : [{ type: 'text', value: '' }],
         options,
         tree[`class-${i}`]
